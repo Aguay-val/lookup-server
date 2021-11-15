@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_pymongo import PyMongo
 from flask_restful import Resource, Api
 
@@ -16,7 +16,18 @@ class HelloWorld(Resource):
         
 class Users(Resource):
     def get(self):
-        datas = mongo.db.users.find()
+        # users?search=searchstring
+        searchstring = request.args.get('search')
+        if searchstring:
+            datas = mongo.db.users.find({'$or':[
+                { 'emails': {'$elemMatch': {'address': { '$regex': f".*{searchstring}.*", '$options': 'i' }}}},
+                {'username': { '$regex': f".*{searchstring}.*", '$options': 'i' }},
+                {'lastName': { '$regex': f".*{searchstring}.*", '$options': 'i' }},
+                {'firstName': { '$regex': f".*{searchstring}.*", '$options': 'i' }}
+            ]}
+            )
+        else:
+            datas = mongo.db.users.find()
         return jsonify(list(datas))
         
         
