@@ -3,7 +3,8 @@
 
 from flask import Flask
 from flask_pymongo import PyMongo
+from os import environ
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:3001/meteor"
+app.config["MONGO_URI"] = environ['MONGO_URI']
 mongo = PyMongo(app)
