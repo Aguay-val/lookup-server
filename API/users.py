@@ -4,7 +4,9 @@
 from flask import request, jsonify
 from flask_restful import Resource
 import datetime
+import copy
 from init import mongo
+
 
 class Users(Resource):
     def get(self):
@@ -42,7 +44,7 @@ class Users(Resource):
         }
         res = []
         for u in list(datas):
-            resDict = resSingleUser.copy()
+            resDict = copy.deepcopy(resSingleUser)
             resDict['message']['data']['federationId'] = f"{u['username']}@{u['nclocator']}"
             resDict['message']['data']['name'] = f"{u['firstName']}@{u['lastName']}"
             resDict['message']['data']['email'] = f"{u['emails'][0]['address']}"
