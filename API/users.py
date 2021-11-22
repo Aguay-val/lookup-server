@@ -5,7 +5,7 @@ from flask import request, jsonify, json
 from flask_restful import Resource
 import datetime
 import copy
-from init import mongo
+from init import mongo, app
 
 
 class Users(Resource):
@@ -76,7 +76,7 @@ class Users(Resource):
             'timestamp' : 0,
             'signer' : 'yo'
         },
-            'signature' : ''
+            'signature' : app.config["APP_SIGN"]
         }
         res = []
         for u in datas:
