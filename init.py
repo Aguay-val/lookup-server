@@ -8,5 +8,4 @@ from os import environ
 app = Flask(__name__)
 print("MONGO_URI = ", environ['MONGO_URI'])
 app.config["MONGO_URI"] = environ['MONGO_URI']
-app.config["APP_SIGN"] = environ['APP_SIGN']
 mongo = PyMongo(app)

@@ -5,7 +5,7 @@ from flask import request, jsonify, json
 from flask_restful import Resource
 import datetime
 import copy
-from init import mongo, app
+from init import mongo
 
 
 class Users(Resource):
@@ -62,28 +62,15 @@ class Users(Resource):
             [table of dict]: the newly formatted users table
         """
         resSingleUser = {
-        'message' : {
-            'data' : {
             'federationId' : '',
             'name' : '',
             'email' : '',
-            'address' : '',
-            'website' : '',
-            'twitter' : '',
-            'phone' : ''
-            },
-            'type' : 'lookupserver-apps',
-            'timestamp' : 0,
-            'signer' : 'yo'
-        },
-            'signature' : app.config["APP_SIGN"]
-        }
+            }
         res = []
         for u in datas:
-            resDict = copy.deepcopy(resSingleUser)
-            resDict['message']['data']['federationId'] = f"{u['username']}@{u['nclocator']}"
-            resDict['message']['data']['name'] = f"{u['firstName']}@{u['lastName']}"
-            resDict['message']['data']['email'] = f"{u['emails'][0]['address']}"
-            resDict['message']['timestamp'] = int(datetime.datetime.now().timestamp())
+            resDict = resSingleUser.copy()
+            resDict['federationId'] = f"{u['username']}@{u['nclocator']}"
+            resDict['name'] = f"{u['firstName']} {u['lastName']}"
+            resDict['email'] = f"{u['emails'][0]['address']}"
             res.append(resDict)
         return res
