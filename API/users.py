@@ -3,10 +3,8 @@
 
 from flask import request, jsonify, json
 from flask_restful import Resource
-import datetime
-import copy
 from init import mongo
-
+import copy
 
 class Users(Resource):
     def get(self):
@@ -41,15 +39,25 @@ class Users(Resource):
                 query['$or'].append(query_fields[field])
 
         if searchstring:
-            datas = mongo.db.users.find(query)
+            if exact:
+                # returns only one user
+                if "email" in keys:
+                    query_one = {'emails': {'$elemMatch': {'address': searchstring}}}
+                else:
+                    query_one = {'username': searchstring}
+
+                datas = mongo.db.users.find_one(query_one)
+                if datas:
+                    return jsonify(self.formatUsersResult([datas])[0])
+                else:
+                    return ""
+            else:
+                # returns all users found
+                datas = mongo.db.users.find(query)
+                return jsonify(self.formatUsersResult(list(datas)))
         else:
+            # returns all users
             datas = mongo.db.users.find({})
-            
-        if exact:
-            # returns only one user
-            return jsonify(self.formatUsersResult(list(datas))[0])
-        else:
-            # returns all users found
             return jsonify(self.formatUsersResult(list(datas)))
     
     def formatUsersResult(self, datas):
@@ -63,14 +71,36 @@ class Users(Resource):
         """
         resSingleUser = {
             'federationId' : '',
-            'name' : '',
-            'email' : '',
-            }
+            'name':{
+                'value' : '',
+                'verified' : '1',  
+            },
+            'email' : {
+                'value' : '',
+                'verified' : '1',  
+            },
+            'address' : {
+                'value' : '',
+                'verified' : '1',  
+            },
+            'website' : {
+                'value' : '',
+                'verified' : '1',  
+            },
+            'twitter' : {
+                'value' : '',
+                'verified' : '1',  
+            },
+            'phone' : {
+                'value' : '',
+                'verified' : '1',  
+            },
+        }
         res = []
         for u in datas:
-            resDict = resSingleUser.copy()
+            resDict = copy.deepcopy(resSingleUser)
             resDict['federationId'] = f"{u['username']}@{u['nclocator']}"
-            resDict['name'] = f"{u['firstName']} {u['lastName']}"
-            resDict['email'] = f"{u['emails'][0]['address']}"
+            resDict['name']['value'] = f"{u['firstName']} {u['lastName']}"
+            resDict['email']['value'] = f"{u['emails'][0]['address']}"
             res.append(resDict)
         return res
