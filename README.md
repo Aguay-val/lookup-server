@@ -18,6 +18,8 @@ Portage du lookup-server pour nextcloud
 
 ```/users?search=searchstring``` => returns users matching searchstring
 
-```# users?search=searchstring&exact=1``` => returns a single user matching searchstring
+```# users?search=searchstring&exact=1``` => returns a single user matching exact searchstring on username
 
-```# users?search=searchstring&keys=["email"]``` => returns users matching searchstring only on email field
+```# users?search=searchstring&exact=1&keys=["email"]``` => returns a single user matching exact searchstring on emails
+
+```# users?search=searchstring&keys=["email"]``` => returns users matching searchstring only on emails field
