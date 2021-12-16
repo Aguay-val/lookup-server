@@ -13,14 +13,19 @@ include:
     file: /templates/Lint/Commitlint.yaml
   - project: EOLE/infra/ci-tools
     ref: stable
+    file: /templates/Docker.yaml
+  - project: EOLE/infra/ci-tools
+    ref: stable
     file: /templates/Release/Semantic-release.yaml
 
 stages:
   - initial-checks
+  - build
   - release
 
 variables:
   STABLE_BRANCH: master
+  IMAGE_NAME: lookup-server
 
 ###############################################################################
 # `initial-checks` stage: `commitlint`
@@ -28,6 +33,14 @@ variables:
 # Override default `commitlint` stage
 commitlint:
   stage: initial-checks
+
+
+###############################################################################
+# `build` stage: `build-docker`
+###############################################################################
+# The name of the built image is define globally by `$IMAGE_NAME`
+build-docker:
+  extends: .build-docker-image
 
 
 ###############################################################################
