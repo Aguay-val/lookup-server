@@ -11,9 +11,13 @@ include:
   - project: EOLE/infra/ci-tools
     ref: stable
     file: /templates/Lint/Commitlint.yaml
+  - project: EOLE/infra/ci-tools
+    ref: stable
+    file: /templates/Release/Semantic-release.yaml
 
 stages:
   - initial-checks
+  - release
 
 variables:
   STABLE_BRANCH: master
@@ -24,3 +28,9 @@ variables:
 # Override default `commitlint` stage
 commitlint:
   stage: initial-checks
+
+
+###############################################################################
+# `release` stage: `semantic-release`
+###############################################################################
+# the `semantic-release` job is defined in `templates/Release/Semantic-Release.yaml`
