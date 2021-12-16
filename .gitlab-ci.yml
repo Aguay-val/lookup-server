@@ -1,0 +1,26 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+---
+include:
+  - project: EOLE/infra/ci-tools
+    ref: stable
+    file: /templates/Rules.yaml
+  - project: EOLE/infra/ci-tools
+    ref: stable
+    file: /templates/Runners/apps.education-docker.yaml
+  - project: EOLE/infra/ci-tools
+    ref: stable
+    file: /templates/Lint/Commitlint.yaml
+
+stages:
+  - initial-checks
+
+variables:
+  STABLE_BRANCH: master
+
+###############################################################################
+# `initial-checks` stage: `commitlint`
+###############################################################################
+# Override default `commitlint` stage
+commitlint:
+  stage: initial-checks

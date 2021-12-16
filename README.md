@@ -23,3 +23,11 @@ Portage du lookup-server pour nextcloud
 ```# users?search=searchstring&exact=1&keys=["email"]``` => returns a single user matching exact searchstring on emails
 
 ```# users?search=searchstring&keys=["email"]``` => returns users matching searchstring only on emails field
+
+## Contributing to this project
+
+### Commit messages
+
+Commit messages formatting is **significant**!
+
+Please, see [how to contribute](docs/CONTRIBUTING.md) for more details.
