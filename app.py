@@ -13,4 +13,4 @@ api.add_resource(User, "/user/<string:name>")
 
 
 if __name__ == "__main__":
-    app.run(debug = False, port = 8080, host = '0.0.0.0', threaded = True)
+    app.run(debug=False, port=8080, host="0.0.0.0", threaded=True)
