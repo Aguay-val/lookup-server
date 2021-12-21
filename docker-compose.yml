@@ -8,5 +8,15 @@ services:
     ports:
       - '80:5000'
     environment:
-      MONGO_URI: mongodb://localhost:3001/meteor
-      PORT: 5000
+      MONGO_URI: mongodb://mongo:27017/meteor
+    depends_on: 
+      - mongo
+  mongo:
+    image: mongo:latest
+    command:
+      - --storageEngine=wiredTiger
+    volumes:
+      - data:/data/db
+
+volumes:
+  data:

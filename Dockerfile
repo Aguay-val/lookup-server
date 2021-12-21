@@ -2,12 +2,18 @@ FROM python:3-alpine
 
 WORKDIR /usr/src/app
 
+# Tell Python to not generate .pyc
+ENV PYTHONDONTWRITEBYTECODE 1
+# Turn off buffering
+ENV PYTHONUNBUFFERED 1
+ENV MONGO_URI=${MONGO_URI}
+ENV MONGO_LIMIT=${MONGO_LIMIT}
+
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENV MONGO_URI=${MONGO_URI}
 EXPOSE 5000
 
-CMD [ "python", "-m" , "flask", "run", "--host=0.0.0.0"]
+CMD ["gunicorn"  , "-b", "0.0.0.0:5000", "app:app"]
