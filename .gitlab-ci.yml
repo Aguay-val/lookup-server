@@ -34,6 +34,15 @@ variables:
 commitlint:
   stage: initial-checks
 
+# Verify python code with black
+python:black:
+  stage: initial-checks
+  image: "${PYTHON_BLACK_IMAGE}"
+  variables:
+    PYTHON_BLACK_IMAGE: "hub.eole.education/proxyhub/pyfound/black:latest_release"
+  script:
+    - black --check --diff .
+
 
 ###############################################################################
 # `build` stage: `build-docker`
