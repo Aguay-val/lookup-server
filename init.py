@@ -5,6 +5,8 @@ from flask import Flask
 from flask_pymongo import PyMongo
 from os import environ
 
+__version__ = "1.0.0"
+
 app = Flask(__name__)
 print("MONGO_URI = ", environ["MONGO_URI"])
 app.config["MONGO_URI"] = environ["MONGO_URI"]
