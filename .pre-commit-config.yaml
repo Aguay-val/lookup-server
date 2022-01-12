@@ -18,4 +18,4 @@ repos:
         description: The python code must conform to the black formatting rules
         types: [python]
         language: docker_image
-        entry: hub.eole.education/proxyhub/pyfound/black:latest_release black --check
+        entry: --user root hub.eole.education/proxyhub/pyfound/black:latest_release black --check
