@@ -10,7 +10,7 @@ include:
     file: /templates/Runners/apps.education-docker.yaml
   - project: EOLE/infra/ci-tools
     ref: stable
-    file: /templates/Lint/Commitlint.yaml
+    file: /templates/Git.yaml
   - project: EOLE/infra/ci-tools
     ref: stable
     file: /templates/Docker.yaml
@@ -33,6 +33,7 @@ variables:
 # Override default `commitlint` stage
 commitlint:
   stage: initial-checks
+  extends: .git:commitlint
 
 # Verify python code with black
 python:black:
