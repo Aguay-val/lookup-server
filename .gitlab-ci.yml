@@ -91,7 +91,7 @@ merge-to-dev:
 ## tag contribution branches with a more stable name than `git-${CI_COMMIT_SHORT_SHA}`
 tag contrib branch:
   extends:
-    - .tag-docker-image
+    - .docker:image:tag
     - .on-branches
   variables:
     # `feature/foo-bar_quux` → `feature-foo-bar-quux`
@@ -99,54 +99,49 @@ tag contrib branch:
 
 ## dev images
 tag dev:
-  extends:
-    - .tag-docker-image
-    - .on-dev
+  extends: .docker:image:tag
+  rules:
+    - !reference [.rules-map, not-on-schedule]
+    - !reference [.rules-map, not-on-draft]
+    - !reference [.rules-map, on-dev]
   variables:
     IMAGE_TAG: dev
 
 ## testing images
+tag testing prerelease:
+  extends:
+    - .docker:image:tag
+    - .on-testing-tag
+
 tag testing:
   extends:
-    - .tag-docker-image
-    - .on-testing
+    - .docker:image:tag
+    - .on-testing-tag
   variables:
     IMAGE_TAG: testing
 
 ## stable images
-# we retag the latest `testing`
-.tag-stable:
-  extends: .tag-docker-image
-  variables:
-    SOURCE_TAG: "testing"
-
-# add the `X.Y.Z` tag
 tag release:
-  extends: .tag-stable
+  extends: .docker:image:tag
 
-# add the `X` tag
 tag major:
-  extends: .tag-stable
+  extends: .docker:image:tag
   before_script:
-    - export RELEASE_PREFIX=${RELEASE_PREFIX:-release/}
-    - export RELEASE=${CI_COMMIT_TAG#${RELEASE_PREFIX}}
+    - export RELEASE=${CI_COMMIT_TAG#${RELEASE_TAG_PREFIX}}
     - export IMAGE_TAG=${RELEASE%%.*}
 
-# add the `X.Y` tag
 tag minor:
-  extends:
-    - .tag-stable
+  extends: .docker:image:tag
   before_script:
-    - export RELEASE_PREFIX=${RELEASE_PREFIX:-release/}
-    - export RELEASE=${CI_COMMIT_TAG#${RELEASE_PREFIX}}
+    - export RELEASE=${CI_COMMIT_TAG#${RELEASE_TAG_PREFIX}}
     - export IMAGE_TAG=${RELEASE%.${RELEASE##*.}}
 
 tag stable:
-  extends: .tag-stable
+  extends: .docker:image:tag
   variables:
     IMAGE_TAG: stable
 
 tag latest:
-  extends: .tag-stable
+  extends: .docker:image:tag
   variables:
     IMAGE_TAG: latest
