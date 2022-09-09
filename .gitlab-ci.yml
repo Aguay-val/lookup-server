@@ -50,7 +50,15 @@ python:black:
 ###############################################################################
 # The name of the built image is define globally by `$IMAGE_NAME`
 build-docker:
-  extends: .build-docker-image
+  extends: .docker:image:build
+  rules:
+    - !reference [.rules-map, not-on-schedule]
+    - !reference [.rules-map, not-on-draft]
+    - !reference [.rules-map, on-release-tag]
+    - !reference [.rules-map, on-testing-tag]
+    - !reference [.rules-map, on-dev]
+    - !reference [.rules-map, not-on-semantic-release-commit]
+    - !reference [.rules-map, on-branch]
 
 
 ###############################################################################
