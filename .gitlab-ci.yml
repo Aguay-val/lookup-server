@@ -13,10 +13,10 @@ include:
     file: /templates/Git.yaml
   - project: EOLE/infra/ci-tools
     ref: stable
-    file: /templates/Docker.yaml
+    file: /templates/Semantic-release.yaml
   - project: EOLE/infra/ci-tools
     ref: stable
-    file: /templates/Release/Semantic-release.yaml
+    file: /templates/Docker.yaml
 
 stages:
   - initial-checks
@@ -54,9 +54,14 @@ build-docker:
 
 
 ###############################################################################
-# `release` stage: `semantic-release`, `tag *`
+# `release` stage: `new release`, testing prerelease`, `tag *`
 ###############################################################################
-# the `semantic-release` job is defined in `templates/Release/Semantic-Release.yaml`
+# Create the release versions on `$STABLE_BRANCH`
+new release: {extends: '.semantic-release:stable'}
+
+# Create the prereleases versions on `$TESTING_BRANCH`
+# update `.releaserc.js` variable `betaBranch`
+testing prerelease: {extends: '.semantic-release:testing'}
 
 # Avoid regression by merging all pre-release fixes to dev
 merge-to-dev:
