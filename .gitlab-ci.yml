@@ -10,13 +10,13 @@ include:
     file: /templates/Runners/apps.education-docker.yaml
   - project: EOLE/infra/ci-tools
     ref: stable
-    file: /templates/Lint/Commitlint.yaml
+    file: /templates/Git.yaml
+  - project: EOLE/infra/ci-tools
+    ref: stable
+    file: /templates/Semantic-release.yaml
   - project: EOLE/infra/ci-tools
     ref: stable
     file: /templates/Docker.yaml
-  - project: EOLE/infra/ci-tools
-    ref: stable
-    file: /templates/Release/Semantic-release.yaml
 
 stages:
   - initial-checks
@@ -33,10 +33,20 @@ variables:
 # Override default `commitlint` stage
 commitlint:
   stage: initial-checks
+  extends: .git:commitlint
 
 # Verify python code with black
+# Make sure the test run before creating a new release and
+# on `dev` branch after `merge-to-dev` job.
 python:black:
   stage: initial-checks
+  rules:
+    - !reference [.rules-map, not-on-schedule]
+    - !reference [.rules-map, not-on-draft]
+    - !reference [.rules-map, not-on-tag]
+    - !reference [.rules-map, on-dev]
+    - !reference [.rules-map, not-on-semantic-release-commit]
+    - !reference [.rules-map, on-branch]
   image: "${PYTHON_BLACK_IMAGE}"
   variables:
     PYTHON_BLACK_IMAGE: "hub.eole.education/proxyhub/pyfound/black:latest_release"
@@ -49,35 +59,34 @@ python:black:
 ###############################################################################
 # The name of the built image is define globally by `$IMAGE_NAME`
 build-docker:
-  extends: .build-docker-image
+  extends: .docker:image:build
+  rules:
+    - !reference [.rules-map, not-on-schedule]
+    - !reference [.rules-map, not-on-draft]
+    - !reference [.rules-map, on-release-tag]
+    - !reference [.rules-map, on-testing-tag]
+    - !reference [.rules-map, on-dev]
+    - !reference [.rules-map, not-on-semantic-release-commit]
+    - !reference [.rules-map, on-branch]
 
 
 ###############################################################################
-# `release` stage: `semantic-release`, `tag *`
+# `release` stage: `new release`, testing prerelease`, `merge-to-dev`, `tag *`
 ###############################################################################
-# the `semantic-release` job is defined in `templates/Release/Semantic-Release.yaml`
+# Create the release versions on `$STABLE_BRANCH`
+new release: {extends: '.semantic-release:stable'}
 
-# Avoid regression by merging all pre-release fixes to dev
-merge-to-dev:
-  stage: release
-  extends: .on-release-tag
-  # We use whatever image that has git
-  image: 'hub.eole.education/eole/commitlint:latest'
-  script:
-    # Add `upstream` remote to push with `write_repository` token
-    # Use `${GITLAB_TOKEN}` for write permission
-    - "git remote show upstream 2> /dev/null || git remote add upstream ${CI_REPOSITORY_URL/${CI_JOB_TOKEN}/${GITLAB_TOKEN}}"
-    - 'git fetch --all'
-    - 'git checkout -b ${DEV_BRANCH} upstream/${DEV_BRANCH}'
-    - 'git merge --no-edit ${CI_COMMIT_TAG}'
-    - 'git push upstream ${DEV_BRANCH}'
-    # Remove `upstream` to avoid caching `CI_JOB_TOKEN`
-    - "git remote remove upstream"
+# Create the prereleases versions on `$TESTING_BRANCH`
+# update `.releaserc.js` variable `betaBranch`
+testing prerelease: {extends: '.semantic-release:testing'}
+
+# Avoid regression and update `version` of package*.json in `$DEV_BRANCH`
+merge-to-dev: {extends: '.git:merge-to', variables: {GIT_MERGE_TARGET: $DEV_BRANCH}}
 
 ## tag contribution branches with a more stable name than `git-${CI_COMMIT_SHORT_SHA}`
 tag contrib branch:
   extends:
-    - .tag-docker-image
+    - .docker:image:tag
     - .on-branches
   variables:
     # `feature/foo-bar_quux` → `feature-foo-bar-quux`
@@ -85,54 +94,49 @@ tag contrib branch:
 
 ## dev images
 tag dev:
-  extends:
-    - .tag-docker-image
-    - .on-dev
+  extends: .docker:image:tag
+  rules:
+    - !reference [.rules-map, not-on-schedule]
+    - !reference [.rules-map, not-on-draft]
+    - !reference [.rules-map, on-dev]
   variables:
     IMAGE_TAG: dev
 
 ## testing images
+tag testing prerelease:
+  extends:
+    - .docker:image:tag
+    - .on-testing-tag
+
 tag testing:
   extends:
-    - .tag-docker-image
-    - .on-testing
+    - .docker:image:tag
+    - .on-testing-tag
   variables:
     IMAGE_TAG: testing
 
 ## stable images
-# we retag the latest `testing`
-.tag-stable:
-  extends: .tag-docker-image
-  variables:
-    SOURCE_TAG: "testing"
-
-# add the `X.Y.Z` tag
 tag release:
-  extends: .tag-stable
+  extends: .docker:image:tag
 
-# add the `X` tag
 tag major:
-  extends: .tag-stable
+  extends: .docker:image:tag
   before_script:
-    - export RELEASE_PREFIX=${RELEASE_PREFIX:-release/}
-    - export RELEASE=${CI_COMMIT_TAG#${RELEASE_PREFIX}}
+    - export RELEASE=${CI_COMMIT_TAG#${RELEASE_TAG_PREFIX}}
     - export IMAGE_TAG=${RELEASE%%.*}
 
-# add the `X.Y` tag
 tag minor:
-  extends:
-    - .tag-stable
+  extends: .docker:image:tag
   before_script:
-    - export RELEASE_PREFIX=${RELEASE_PREFIX:-release/}
-    - export RELEASE=${CI_COMMIT_TAG#${RELEASE_PREFIX}}
+    - export RELEASE=${CI_COMMIT_TAG#${RELEASE_TAG_PREFIX}}
     - export IMAGE_TAG=${RELEASE%.${RELEASE##*.}}
 
 tag stable:
-  extends: .tag-stable
+  extends: .docker:image:tag
   variables:
     IMAGE_TAG: stable
 
 tag latest:
-  extends: .tag-stable
+  extends: .docker:image:tag
   variables:
     IMAGE_TAG: latest
