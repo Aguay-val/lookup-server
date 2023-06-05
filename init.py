@@ -16,4 +16,11 @@ except:
     app.config["MONGO_LIMIT"] = 10
 
 print("MONGO_LIMIT = ", app.config["MONGO_LIMIT"])
+
+try:
+    app.config["SEARCH_LIMIT"] = int(environ["SEARCH_LIMIT"])
+except:
+    app.config["SEARCH_LIMIT"] = 5
+
+print("SEARCH_LIMIT = ", app.config["SEARCH_LIMIT"])
 mongo = PyMongo(app)

@@ -10,7 +10,11 @@ import copy
 class Users(Resource):
     def get(self):
         # users?search=searchstring&exact=1&keys=["email"]
+
         searchstring = request.args.get("search")
+        if len(searchstring) < app.config["SEARCH_LIMIT"]:
+            return ""
+
         exact = True if request.args.get("exact") == "1" else False
         keys = []
         if request.args.get("keys"):
